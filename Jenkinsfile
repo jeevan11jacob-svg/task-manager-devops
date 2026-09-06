@@ -32,7 +32,19 @@ pipeline {
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
-                ]) {
+                ])
+                stage('Deploy to EC2') {
+    steps {
+        sh '''
+            cd /workspace/task-manager-devops
+
+            docker compose -p task-manager-devops pull
+
+            docker compose -p task-manager-devops up -d
+        '''
+    }
+}
+                 {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 
