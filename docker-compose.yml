@@ -7,7 +7,7 @@ services:
       - mongodb_data:/data/db
 
   backend:
-    build: ./server
+    image: jeevanjacob11/task-manager-backend:latest
     container_name: task-manager-backend
     restart: always
     environment:
@@ -19,7 +19,7 @@ services:
       - mongodb
 
   frontend:
-    build: ./client
+    image: jeevanjacob11/task-manager-frontend:latest
     container_name: task-manager-frontend
     restart: always
     ports:
