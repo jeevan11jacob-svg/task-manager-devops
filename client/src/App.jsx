@@ -14,18 +14,29 @@ function App() {
 
   const [editingTask, setEditingTask] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [priorityFilter, setPriorityFilter] = useState("All");
+
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
-    try {
-      const response = await axios.get("/api/tasks");
+  try {
+    const response = await axios.get("/api/tasks");
+
+    if (Array.isArray(response.data)) {
       setTasks(response.data);
-    } catch (error) {
-      console.error("Failed to fetch tasks:", error);
+    } else {
+      console.error("API did not return an array:", response.data);
+      setTasks([]);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch tasks:", error);
+    setTasks([]);
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,6 +122,33 @@ function App() {
     }
   };
 
+  const filteredTasks = tasks.filter((task) => {
+    const title = task.title || "";
+    const description = task.description || "";
+
+    const matchesSearch =
+      title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      description
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "All" ||
+      task.status === statusFilter;
+
+    const matchesPriority =
+      priorityFilter === "All" ||
+      task.priority === priorityFilter;
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesPriority
+    );
+  });
+
   return (
     <div className="app">
       <header>
@@ -129,7 +167,8 @@ function App() {
           <p>
             {
               tasks.filter(
-                (task) => task.status === "In Progress"
+                (task) =>
+                  task.status === "In Progress"
               ).length
             }
           </p>
@@ -140,7 +179,8 @@ function App() {
           <p>
             {
               tasks.filter(
-                (task) => task.status === "Completed"
+                (task) =>
+                  task.status === "Completed"
               ).length
             }
           </p>
@@ -173,7 +213,9 @@ function App() {
           <option value="In Progress">
             In Progress
           </option>
-          <option value="Completed">Completed</option>
+          <option value="Completed">
+            Completed
+          </option>
         </select>
 
         <select
@@ -210,56 +252,101 @@ function App() {
         )}
       </section>
 
+      <section className="filters">
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) =>
+            setSearchTerm(e.target.value)
+          }
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value)
+          }
+        >
+          <option value="All">All Statuses</option>
+          <option value="To Do">To Do</option>
+          <option value="In Progress">
+            In Progress
+          </option>
+          <option value="Completed">
+            Completed
+          </option>
+        </select>
+
+        <select
+          value={priorityFilter}
+          onChange={(e) =>
+            setPriorityFilter(e.target.value)
+          }
+        >
+          <option value="All">All Priorities</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </section>
+
       <section className="tasks">
         <h2>My Tasks</h2>
 
-        {tasks.map((task) => (
-          <div
-            className="task-card"
-            key={task._id}
-          >
-            <div>
-              <h3>{task.title}</h3>
+        {filteredTasks.length === 0 ? (
+          <p>No tasks found.</p>
+        ) : (
+          filteredTasks.map((task) => (
+            <div
+              className="task-card"
+              key={task._id}
+            >
+              <div>
+                <h3>{task.title}</h3>
 
-              {task.description && (
-                <p>{task.description}</p>
-              )}
+                {task.description && (
+                  <p>{task.description}</p>
+                )}
 
-              <span>
-                Priority: {task.priority}
-              </span>
-
-              <span>
-                Status: {task.status}
-              </span>
-
-              {task.dueDate && (
                 <span>
-                  Due:{" "}
-                  {new Date(
-                    task.dueDate
-                  ).toLocaleDateString()}
+                  Priority: {task.priority}
                 </span>
-              )}
-            </div>
 
-            <div>
-              <button
-                onClick={() => editTask(task)}
-              >
-                Edit
-              </button>
+                <span>
+                  Status: {task.status}
+                </span>
 
-              <button
-                onClick={() =>
-                  deleteTask(task._id)
-                }
-              >
-                Delete
-              </button>
+                {task.dueDate && (
+                  <span>
+                    Due:{" "}
+                    {new Date(
+                      task.dueDate
+                    ).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <button
+                  onClick={() =>
+                    editTask(task)
+                  }
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() =>
+                    deleteTask(task._id)
+                  }
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </section>
     </div>
   );
