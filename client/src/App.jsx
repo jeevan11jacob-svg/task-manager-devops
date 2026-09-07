@@ -2,49 +2,79 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function App() {
-    const [tasks, setTasks] = useState([]);
-
+  const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
+
   useEffect(() => {
-  axios
-    .get("http://localhost:5000/api/tasks")
-    .then((response) => {
-      setTasks(response.data);
-    })
-    .catch((error) => {
-      console.error("Failed to fetch tasks:", error);
-    });
-}, []);
+    axios
+      .get("http://localhost:5000/api/tasks")
+      .then((response) => {
+        setTasks(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch tasks:", error);
+      });
+  }, []);
 
   const addTask = async () => {
-  if (!newTask.trim()) return;
+    if (!newTask.trim()) return;
 
-  try {
-    const response = await axios.post(
-      "http://localhost:5000/api/tasks",
-      {
-        title: newTask,
-        priority: "Medium",
-        status: "To Do",
-      }
-    );
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/tasks",
+        {
+          title: newTask,
+          priority: "Medium",
+          status: "To Do",
+        }
+      );
 
-    setTasks([response.data, ...tasks]);
-    setNewTask("");
-  } catch (error) {
-    console.error("Failed to add task:", error);
-  }
-};
+      setTasks([response.data, ...tasks]);
+      setNewTask("");
+    } catch (error) {
+      console.error("Failed to add task:", error);
+    }
+  };
 
   const deleteTask = async (id) => {
-  try {
-    await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+    try {
+      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
 
-    setTasks(tasks.filter((task) => task._id !== id));
-  } catch (error) {
-    console.error("Failed to delete task:", error);
-  }
-};
+      setTasks(tasks.filter((task) => task._id !== id));
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
+  };
+
+  const editTask = (task) => {
+    setNewTask(task.title);
+    setEditingTask(task);
+  };
+
+  const updateTask = async () => {
+    if (!newTask.trim() || !editingTask) return;
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/tasks/${editingTask._id}`,
+        {
+          title: newTask,
+        }
+      );
+
+      setTasks(
+        tasks.map((task) =>
+          task._id === editingTask._id ? response.data : task
+        )
+      );
+
+      setNewTask("");
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
+  };
 
   return (
     <div className="app">
@@ -61,24 +91,34 @@ function App() {
 
         <div className="stat-card">
           <h3>In Progress</h3>
-          <p>{tasks.filter((task) => task.status === "In Progress").length}</p>
+          <p>
+            {tasks.filter((task) => task.status === "In Progress").length}
+          </p>
         </div>
 
         <div className="stat-card">
           <h3>Completed</h3>
-          <p>{tasks.filter((task) => task.status === "Completed").length}</p>
+          <p>
+            {tasks.filter((task) => task.status === "Completed").length}
+          </p>
         </div>
       </section>
 
       <section className="add-task">
         <input
           type="text"
-          placeholder="Enter a new task..."
+          placeholder={
+            editingTask ? "Edit task..." : "Enter a new task..."
+          }
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
 
-        <button onClick={addTask}>+ Add Task</button>
+        {editingTask ? (
+          <button onClick={updateTask}>Update Task</button>
+        ) : (
+          <button onClick={addTask}>+ Add Task</button>
+        )}
       </section>
 
       <section className="tasks">
@@ -89,18 +129,18 @@ function App() {
             <div>
               <h3>{task.title}</h3>
 
-              <span>
-                Priority: {task.priority}
-              </span>
+              <span>Priority: {task.priority}</span>
 
-              <span>
-                Status: {task.status}
-              </span>
+              <span>Status: {task.status}</span>
             </div>
 
-            <button onClick={() => deleteTask(task.id)}>
-              Delete
-            </button>
+            <div>
+              <button onClick={() => editTask(task)}>Edit</button>
+
+              <button onClick={() => deleteTask(task._id)}>
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </section>
@@ -109,3 +149,4 @@ function App() {
 }
 
 export default App;
+
