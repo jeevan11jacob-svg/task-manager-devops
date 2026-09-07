@@ -8,10 +8,10 @@ pipeline {
     stages {
 
         stage('Test') {
-            steps {
-                echo 'Jenkins pipeline is working!'
-            }
-        }
+    steps {
+        sh 'cd server && npm install && npm test'
+    }
+}
 
         stage('Build Backend Docker Image') {
             steps {
