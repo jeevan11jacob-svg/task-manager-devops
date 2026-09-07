@@ -9,7 +9,8 @@ pipeline {
 
         stage('Test') {
     steps {
-        sh 'cd server && npm install && npm test'
+        sh 'docker run --rm -v "$WORKSPACE/server:/app" -w /app node:24 npm install'
+        sh 'docker run --rm -v "$WORKSPACE/server:/app" -w /app node:24 npm test'
     }
 }
 
