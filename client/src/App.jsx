@@ -3,34 +3,99 @@ import axios from "axios";
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    status: "To Do",
+    priority: "Medium",
+    dueDate: "",
+  });
+
   const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("/api/tasks")
-      .then((response) => {
-        setTasks(response.data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch tasks:", error);
-      });
+    fetchTasks();
   }, []);
 
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get("/api/tasks");
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Failed to fetch tasks:", error);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm({
+      ...form,
+      [name]: value,
+    });
+  };
+
+  const resetForm = () => {
+    setForm({
+      title: "",
+      description: "",
+      status: "To Do",
+      priority: "Medium",
+      dueDate: "",
+    });
+
+    setEditingTask(null);
+  };
+
   const addTask = async () => {
-    if (!newTask.trim()) return;
+    if (!form.title.trim()) return;
 
     try {
-      const response = await axios.post("/api/tasks", {
-        title: newTask,
-        priority: "Medium",
-        status: "To Do",
-      });
+      const response = await axios.post("/api/tasks", form);
 
       setTasks([response.data, ...tasks]);
-      setNewTask("");
+
+      resetForm();
     } catch (error) {
       console.error("Failed to add task:", error);
+    }
+  };
+
+  const editTask = (task) => {
+    setForm({
+      title: task.title,
+      description: task.description || "",
+      status: task.status || "To Do",
+      priority: task.priority || "Medium",
+      dueDate: task.dueDate
+        ? task.dueDate.split("T")[0]
+        : "",
+    });
+
+    setEditingTask(task);
+  };
+
+  const updateTask = async () => {
+    if (!form.title.trim() || !editingTask) return;
+
+    try {
+      const response = await axios.put(
+        `/api/tasks/${editingTask._id}`,
+        form
+      );
+
+      setTasks(
+        tasks.map((task) =>
+          task._id === editingTask._id
+            ? response.data
+            : task
+        )
+      );
+
+      resetForm();
+    } catch (error) {
+      console.error("Failed to update task:", error);
     }
   };
 
@@ -38,38 +103,11 @@ function App() {
     try {
       await axios.delete(`/api/tasks/${id}`);
 
-      setTasks(tasks.filter((task) => task._id !== id));
+      setTasks(
+        tasks.filter((task) => task._id !== id)
+      );
     } catch (error) {
       console.error("Failed to delete task:", error);
-    }
-  };
-
-  const editTask = (task) => {
-    setNewTask(task.title);
-    setEditingTask(task);
-  };
-
-  const updateTask = async () => {
-    if (!newTask.trim() || !editingTask) return;
-
-    try {
-      const response = await axios.put(
-        `/api/tasks/${editingTask._id}`,
-        {
-          title: newTask,
-        }
-      );
-
-      setTasks(
-        tasks.map((task) =>
-          task._id === editingTask._id ? response.data : task
-        )
-      );
-
-      setNewTask("");
-      setEditingTask(null);
-    } catch (error) {
-      console.error("Failed to update task:", error);
     }
   };
 
@@ -89,14 +127,22 @@ function App() {
         <div className="stat-card">
           <h3>In Progress</h3>
           <p>
-            {tasks.filter((task) => task.status === "In Progress").length}
+            {
+              tasks.filter(
+                (task) => task.status === "In Progress"
+              ).length
+            }
           </p>
         </div>
 
         <div className="stat-card">
           <h3>Completed</h3>
           <p>
-            {tasks.filter((task) => task.status === "Completed").length}
+            {
+              tasks.filter(
+                (task) => task.status === "Completed"
+              ).length
+            }
           </p>
         </div>
       </section>
@@ -104,17 +150,63 @@ function App() {
       <section className="add-task">
         <input
           type="text"
-          placeholder={
-            editingTask ? "Edit task..." : "Enter a new task..."
-          }
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
+          name="title"
+          placeholder="Task title..."
+          value={form.title}
+          onChange={handleChange}
+        />
+
+        <input
+          type="text"
+          name="description"
+          placeholder="Description..."
+          value={form.description}
+          onChange={handleChange}
+        />
+
+        <select
+          name="status"
+          value={form.status}
+          onChange={handleChange}
+        >
+          <option value="To Do">To Do</option>
+          <option value="In Progress">
+            In Progress
+          </option>
+          <option value="Completed">Completed</option>
+        </select>
+
+        <select
+          name="priority"
+          value={form.priority}
+          onChange={handleChange}
+        >
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+
+        <input
+          type="date"
+          name="dueDate"
+          value={form.dueDate}
+          onChange={handleChange}
         />
 
         {editingTask ? (
-          <button onClick={updateTask}>Update Task</button>
+          <>
+            <button onClick={updateTask}>
+              Update Task
+            </button>
+
+            <button onClick={resetForm}>
+              Cancel
+            </button>
+          </>
         ) : (
-          <button onClick={addTask}>+ Add Task</button>
+          <button onClick={addTask}>
+            + Add Task
+          </button>
         )}
       </section>
 
@@ -122,19 +214,47 @@ function App() {
         <h2>My Tasks</h2>
 
         {tasks.map((task) => (
-          <div className="task-card" key={task._id}>
+          <div
+            className="task-card"
+            key={task._id}
+          >
             <div>
               <h3>{task.title}</h3>
 
-              <span>Priority: {task.priority}</span>
+              {task.description && (
+                <p>{task.description}</p>
+              )}
 
-              <span>Status: {task.status}</span>
+              <span>
+                Priority: {task.priority}
+              </span>
+
+              <span>
+                Status: {task.status}
+              </span>
+
+              {task.dueDate && (
+                <span>
+                  Due:{" "}
+                  {new Date(
+                    task.dueDate
+                  ).toLocaleDateString()}
+                </span>
+              )}
             </div>
 
             <div>
-              <button onClick={() => editTask(task)}>Edit</button>
+              <button
+                onClick={() => editTask(task)}
+              >
+                Edit
+              </button>
 
-              <button onClick={() => deleteTask(task._id)}>
+              <button
+                onClick={() =>
+                  deleteTask(task._id)
+                }
+              >
                 Delete
               </button>
             </div>
@@ -146,4 +266,3 @@ function App() {
 }
 
 export default App;
-
