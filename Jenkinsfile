@@ -9,8 +9,8 @@ pipeline {
 
         stage('Test') {
     steps {
-        sh 'docker run --rm -v "$WORKSPACE:/workspace" -w /workspace/server node:24 npm install'
-        sh 'docker run --rm -v "$WORKSPACE:/workspace" -w /workspace/server node:24 npm test'
+        sh 'docker run --rm -v jenkins_home:/var/jenkins_home -w /var/jenkins_home/workspace/DevOps-Task-Manager/server node:24 npm install'
+        sh 'docker run --rm -v jenkins_home:/var/jenkins_home -w /var/jenkins_home/workspace/DevOps-Task-Manager/server node:24 npm test'
     }
 }
 
