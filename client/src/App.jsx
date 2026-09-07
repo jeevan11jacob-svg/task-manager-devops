@@ -8,7 +8,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tasks")
+      .get("/api/tasks")
       .then((response) => {
         setTasks(response.data);
       })
@@ -21,14 +21,11 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/tasks",
-        {
-          title: newTask,
-          priority: "Medium",
-          status: "To Do",
-        }
-      );
+      const response = await axios.post("/api/tasks", {
+        title: newTask,
+        priority: "Medium",
+        status: "To Do",
+      });
 
       setTasks([response.data, ...tasks]);
       setNewTask("");
@@ -39,7 +36,7 @@ function App() {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+      await axios.delete(`/api/tasks/${id}`);
 
       setTasks(tasks.filter((task) => task._id !== id));
     } catch (error) {
@@ -57,7 +54,7 @@ function App() {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/tasks/${editingTask._id}`,
+        `/api/tasks/${editingTask._id}`,
         {
           title: newTask,
         }
