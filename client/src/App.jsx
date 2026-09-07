@@ -1,52 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Learn Docker",
-      priority: "High",
-      status: "In Progress",
-    },
-    {
-      id: 2,
-      title: "Create Jenkins Pipeline",
-      priority: "High",
-      status: "To Do",
-    },
-    {
-      id: 3,
-      title: "Deploy Application to AWS",
-      priority: "Medium",
-      status: "To Do",
-    },
-    {
-      id: 4,
-      title: "Learn Git",
-      priority: "Low",
-      status: "Completed",
-    },
-  ]);
+    const [tasks, setTasks] = useState([]);
 
   const [newTask, setNewTask] = useState("");
+  useEffect(() => {
+  axios
+    .get("http://localhost:5000/api/tasks")
+    .then((response) => {
+      setTasks(response.data);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch tasks:", error);
+    });
+}, []);
 
-  const addTask = () => {
-    if (!newTask.trim()) return;
+  const addTask = async () => {
+  if (!newTask.trim()) return;
 
-    const task = {
-      id: Date.now(),
-      title: newTask,
-      priority: "Medium",
-      status: "To Do",
-    };
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/api/tasks",
+      {
+        title: newTask,
+        priority: "Medium",
+        status: "To Do",
+      }
+    );
 
-    setTasks([...tasks, task]);
+    setTasks([response.data, ...tasks]);
     setNewTask("");
-  };
+  } catch (error) {
+    console.error("Failed to add task:", error);
+  }
+};
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
+  const deleteTask = async (id) => {
+  try {
+    await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+
+    setTasks(tasks.filter((task) => task._id !== id));
+  } catch (error) {
+    console.error("Failed to delete task:", error);
+  }
+};
 
   return (
     <div className="app">
@@ -87,7 +85,7 @@ function App() {
         <h2>My Tasks</h2>
 
         {tasks.map((task) => (
-          <div className="task-card" key={task.id}>
+          <div className="task-card" key={task._id}>
             <div>
               <h3>{task.title}</h3>
 
