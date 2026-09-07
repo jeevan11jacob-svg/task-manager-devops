@@ -15,17 +15,16 @@ pipeline {
 }
 
         stage('Build Backend Docker Image') {
-            steps {
-                sh 'docker build -t task-manager-backend ./server'
-            }
-        }
+    steps {
+        sh 'docker build -t task-manager-backend:$BUILD_NUMBER ./server'
+    }
+}
 
-        stage('Build Frontend Docker Image') {
-            steps {
-                sh 'docker build -t task-manager-frontend ./client'
-            }
-        }
-
+stage('Build Frontend Docker Image') {
+    steps {
+        sh 'docker build -t task-manager-frontend:$BUILD_NUMBER ./client'
+    }
+}
         stage('Push Images to Docker Hub') {
             steps {
                 withCredentials([
@@ -36,16 +35,22 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 
-                        docker tag task-manager-backend:latest $DOCKER_USER/task-manager-backend:latest
-                        docker tag task-manager-frontend:latest $DOCKER_USER/task-manager-frontend:latest
+    docker tag task-manager-backend:$BUILD_NUMBER $DOCKER_USER/task-manager-backend:$BUILD_NUMBER
+    docker tag task-manager-backend:$BUILD_NUMBER $DOCKER_USER/task-manager-backend:latest
 
-                        docker push $DOCKER_USER/task-manager-backend:latest
-                        docker push $DOCKER_USER/task-manager-frontend:latest
+    docker tag task-manager-frontend:$BUILD_NUMBER $DOCKER_USER/task-manager-frontend:$BUILD_NUMBER
+    docker tag task-manager-frontend:$BUILD_NUMBER $DOCKER_USER/task-manager-frontend:latest
 
-                        docker logout
-                    '''
+    docker push $DOCKER_USER/task-manager-backend:$BUILD_NUMBER
+    docker push $DOCKER_USER/task-manager-backend:latest
+
+    docker push $DOCKER_USER/task-manager-frontend:$BUILD_NUMBER
+    docker push $DOCKER_USER/task-manager-frontend:latest
+
+    docker logout
+'''
                 }
             }
         }
