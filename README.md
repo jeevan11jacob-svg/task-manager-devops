@@ -2,7 +2,7 @@
 
 A full-stack MERN task management application deployed through an automated DevOps pipeline using Jenkins, Docker, Docker Hub, AWS EC2, Nginx, and Amazon CloudWatch.
 
-The project demonstrates the complete software delivery lifecycle — from GitHub source control and automated testing to container image creation, registry publishing, EC2 deployment, monitoring, and security hardening.
+The project demonstrates the complete software delivery lifecycle — from GitHub source control and automated testing to containerization, image management, EC2 deployment, monitoring, and security hardening.
 
 ---
 
@@ -27,7 +27,7 @@ Jenkins CI/CD
           ▼
       Docker Hub
           │
-          │ Docker images
+          │ Docker Images
           ▼
        AWS EC2
           │
@@ -173,7 +173,7 @@ task-manager-devops/
 
 ## 🔄 CI/CD Pipeline
 
-The project uses Jenkins to automate the deployment workflow whenever changes are pushed to GitHub.
+The project uses Jenkins to automate the application deployment workflow when changes are pushed to GitHub.
 
 ```text
 Git Push
@@ -199,7 +199,7 @@ Jenkins retrieves the latest source code from the GitHub repository.
 
 #### 2. Docker Compose Build
 
-The pipeline builds the application containers using the Docker Compose configuration and Dockerfiles.
+The pipeline builds the frontend and backend application images using the Docker Compose configuration and Dockerfiles.
 
 #### 3. Docker Compose Deploy
 
@@ -209,7 +209,7 @@ The deployment process updates the application services on the AWS EC2 instance 
 
 The pipeline verifies that the Docker Compose services are running correctly after deployment.
 
-The pipeline is triggered through a GitHub webhook, allowing changes pushed to the repository to initiate the Jenkins workflow automatically.
+The pipeline is triggered through a GitHub webhook, allowing repository changes to initiate the Jenkins workflow automatically.
 
 ---
 
@@ -233,7 +233,7 @@ Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
 ```
 
-The project includes automated backend testing as part of the development and deployment workflow.
+The project includes automated backend testing as part of the development and validation workflow.
 
 ---
 
@@ -241,7 +241,7 @@ The project includes automated backend testing as part of the development and de
 
 The application is containerized using Docker.
 
-The production deployment contains three services:
+The deployment contains three services:
 
 ```text
 Frontend
