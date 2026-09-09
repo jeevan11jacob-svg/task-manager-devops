@@ -20,17 +20,16 @@ GitHub Repository
 Jenkins CI/CD
    │
    ├── Checkout
-   ├── Automated Tests
-   ├── Docker Image Build
-   ├── Push Images
-   └── Deployment
+   ├── Docker Compose Build
+   ├── Docker Compose Deploy
+   └── Compose Verification
           │
           ▼
       Docker Hub
           │
-          │ docker compose pull
+          │ Docker images
           ▼
-      AWS EC2
+       AWS EC2
           │
           ▼
         Nginx
@@ -87,8 +86,8 @@ CloudWatch Agent
 * MongoDB persistence
 * Automated backend testing
 * Dockerized frontend and backend
-* Automated Jenkins CI/CD pipeline
-* Docker Hub image versioning
+* Jenkins CI/CD pipeline
+* Docker Hub image management
 * AWS EC2 deployment
 * Nginx reverse proxy
 * CloudWatch monitoring
@@ -174,7 +173,7 @@ task-manager-devops/
 
 ## 🔄 CI/CD Pipeline
 
-The Jenkins pipeline automates the application delivery process whenever code is pushed to GitHub.
+The project uses Jenkins to automate the deployment workflow whenever changes are pushed to GitHub.
 
 ```text
 Git Push
@@ -185,46 +184,40 @@ Jenkins Trigger
    ↓
 Checkout
    ↓
-Automated Tests
+Docker Compose Build
    ↓
-Docker Image Build
-   ↓
-Push Images to Docker Hub
-   ↓
-Docker Compose Deployment
+Docker Compose Deploy
    ↓
 Compose Verification
 ```
 
 ### Pipeline Stages
 
-1. **Checkout**
+#### 1. Checkout
 
-   * Retrieves the latest source code from the GitHub repository.
+Jenkins retrieves the latest source code from the GitHub repository.
 
-2. **Docker Compose Build**
+#### 2. Docker Compose Build
 
-   * Builds the frontend and backend Docker images.
-   * Uses the application source code and Dockerfiles.
+The pipeline builds the application containers using the Docker Compose configuration and Dockerfiles.
 
-3. **Docker Compose Deploy**
+#### 3. Docker Compose Deploy
 
-   * Pulls the latest Docker images.
-   * Recreates the application containers on the AWS EC2 instance.
+The deployment process updates the application services on the AWS EC2 instance using Docker Compose.
 
-4. **Compose Verification**
+#### 4. Compose Verification
 
-   * Verifies that the Docker Compose services are running correctly after deployment.
+The pipeline verifies that the Docker Compose services are running correctly after deployment.
 
-The pipeline is triggered automatically through a GitHub webhook, reducing the need for manual deployment.
+The pipeline is triggered through a GitHub webhook, allowing changes pushed to the repository to initiate the Jenkins workflow automatically.
 
 ---
 
 ## 🧪 Automated Testing
 
-The backend API is tested using Jest and Supertest.
+The backend REST API is tested using Jest and Supertest.
 
-Current test coverage includes:
+Current API test coverage includes:
 
 ```text
 GET     /api/tasks
@@ -240,7 +233,7 @@ Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
 ```
 
-Automated tests are executed as part of the CI/CD workflow before deployment.
+The project includes automated backend testing as part of the development and deployment workflow.
 
 ---
 
@@ -248,7 +241,7 @@ Automated tests are executed as part of the CI/CD workflow before deployment.
 
 The application is containerized using Docker.
 
-The production deployment contains three application services:
+The production deployment contains three services:
 
 ```text
 Frontend
@@ -265,19 +258,9 @@ jeevanjacob11/task-manager-backend
 jeevanjacob11/task-manager-frontend
 ```
 
-Each Jenkins build can create identifiable image versions using the Jenkins build number.
+The Docker images are published to Docker Hub and used for deployment on the AWS EC2 instance.
 
-For example:
-
-```text
-task-manager-backend:19
-task-manager-backend:latest
-
-task-manager-frontend:19
-task-manager-frontend:latest
-```
-
-Versioned tags allow previous builds to remain identifiable instead of relying only on the `latest` tag.
+Versioned image tags can be used to identify specific application builds, while the `latest` tag represents the current deployment image.
 
 ---
 
@@ -396,7 +379,7 @@ The frontend is also accessed publicly through Nginx rather than exposing its Do
 
 ### MongoDB
 
-MongoDB is not publicly published to the host.
+MongoDB is not publicly published to the EC2 host.
 
 Instead, the backend communicates with MongoDB through the Docker Compose network.
 
@@ -582,7 +565,7 @@ sudo systemctl restart amazon-cloudwatch-agent
 
 ### GitHub Repository
 
-https://github.com/jeevan11jacob-svg/task-manager-devops
+[DevOps Task Manager GitHub Repository](https://github.com/jeevan11jacob-svg/task-manager-devops)
 
 ### Docker Hub Images
 
@@ -644,7 +627,7 @@ This project demonstrates practical experience with:
 * Automated backend testing
 * Containerization using Docker
 * Docker Compose orchestration
-* Docker image versioning
+* Docker image management
 * Docker Hub registry management
 * AWS EC2 deployment
 * Nginx reverse proxy configuration
@@ -667,7 +650,7 @@ Possible future improvements include:
 * HTTPS using an SSL/TLS certificate
 * Custom domain
 * Production React build served directly through Nginx
-* Jenkins deployment using a dedicated deployment strategy
+* Dedicated Jenkins deployment strategy
 * Automated rollback
 * Infrastructure as Code using Terraform
 * Kubernetes deployment
@@ -686,6 +669,6 @@ B.Tech Artificial Intelligence and Data Science
 
 Cloud & DevOps Engineer
 
-GitHub: https://github.com/jeevan11jacob-svg
+GitHub: [jeevan11jacob-svg](https://github.com/jeevan11jacob-svg)
 
-LinkedIn: https://www.linkedin.com/in/jeevan-jacob1
+LinkedIn: [Jeevan Jacob](https://www.linkedin.com/in/jeevan-jacob1)
