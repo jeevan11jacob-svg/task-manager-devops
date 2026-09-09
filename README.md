@@ -1,8 +1,10 @@
-﻿# DevOps Task Manager
+# DevOps Task Manager
 
 A full-stack MERN task management application deployed through an automated DevOps pipeline using Jenkins, Docker, Docker Hub, AWS EC2, Nginx, and Amazon CloudWatch.
 
 The project demonstrates the complete software delivery lifecycle — from GitHub source control and automated testing to container image creation, registry publishing, EC2 deployment, monitoring, and security hardening.
+
+---
 
 ## 🏗️ Architecture
 
@@ -17,11 +19,11 @@ GitHub Repository
    ▼
 Jenkins CI/CD
    │
+   ├── Checkout
    ├── Automated Tests
-   │
    ├── Docker Image Build
-   │
-   └── Push Images
+   ├── Push Images
+   └── Deployment
           │
           ▼
       Docker Hub
@@ -47,7 +49,8 @@ CloudWatch Agent
    │
    ├── Memory Metrics
    ├── Swap Metrics
-   └── Disk Metrics
+   ├── Disk Metrics
+   └── Disk I/O
           │
           ▼
     CloudWatch Alarm
@@ -58,6 +61,8 @@ CloudWatch Agent
           ▼
      Email Alert
 ```
+
+---
 
 ## 🚀 Project Features
 
@@ -88,7 +93,9 @@ CloudWatch Agent
 * Nginx reverse proxy
 * CloudWatch monitoring
 * CloudWatch memory alarm with SNS email notification
-* Docker/network security hardening
+* Docker and network security hardening
+
+---
 
 ## 🛠️ Technology Stack
 
@@ -115,12 +122,14 @@ CloudWatch Agent
 * AWS EC2
 * Amazon CloudWatch
 * Amazon SNS
-* IAM
+* AWS IAM
 
 ### Testing
 
 * Jest
 * Supertest
+
+---
 
 ## 📁 Project Structure
 
@@ -145,14 +154,27 @@ task-manager-devops/
 │   ├── package.json
 │   └── ...
 │
+├── screenshots/
+│   ├── Architecture_Diagram.png
+│   ├── CRUD.png
+│   ├── CloudWatch.png
+│   ├── DH_Backend_image.png
+│   ├── DH_Frontend_image.png
+│   ├── DockerHub.png
+│   ├── Jenkins_build_success.png
+│   ├── Nginx.jpeg
+│   └── Task_manager.png
+│
 ├── docker-compose.yml
 ├── Jenkinsfile
 └── README.md
 ```
 
+---
+
 ## 🔄 CI/CD Pipeline
 
-The Jenkins pipeline automatically performs the following stages whenever code is pushed to GitHub:
+The Jenkins pipeline automates the application delivery process whenever code is pushed to GitHub.
 
 ```text
 Git Push
@@ -161,45 +183,42 @@ GitHub Webhook
    ↓
 Jenkins Trigger
    ↓
+Checkout
+   ↓
 Automated Tests
    ↓
-Build Backend Image
-   ↓
-Build Frontend Image
+Docker Image Build
    ↓
 Push Images to Docker Hub
    ↓
-Deploy to AWS EC2
+Docker Compose Deployment
    ↓
-Docker Compose Pull
-   ↓
-Docker Compose Up
+Compose Verification
 ```
 
-### Pipeline stages
+### Pipeline Stages
 
-1. **Test**
+1. **Checkout**
 
-   * Installs backend dependencies
-   * Runs Jest/Supertest automated tests
+   * Retrieves the latest source code from the GitHub repository.
 
-2. **Build Backend Docker Image**
+2. **Docker Compose Build**
 
-   * Creates a versioned backend image using the Jenkins build number
+   * Builds the frontend and backend Docker images.
+   * Uses the application source code and Dockerfiles.
 
-3. **Build Frontend Docker Image**
+3. **Docker Compose Deploy**
 
-   * Creates a versioned frontend image
+   * Pulls the latest Docker images.
+   * Recreates the application containers on the AWS EC2 instance.
 
-4. **Push Images to Docker Hub**
+4. **Compose Verification**
 
-   * Authenticates securely using Jenkins credentials
-   * Pushes both versioned and `latest` images
+   * Verifies that the Docker Compose services are running correctly after deployment.
 
-5. **Deploy to EC2**
+The pipeline is triggered automatically through a GitHub webhook, reducing the need for manual deployment.
 
-   * Pulls the latest images
-   * Recreates the application containers using Docker Compose
+---
 
 ## 🧪 Automated Testing
 
@@ -214,20 +233,22 @@ PUT     /api/tasks/:id
 DELETE  /api/tasks/:id
 ```
 
-Latest local test result:
+### Latest Local Test Result
 
 ```text
 Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
 ```
 
-Tests are also executed automatically inside the Jenkins pipeline before Docker images are built.
+Automated tests are executed as part of the CI/CD workflow before deployment.
+
+---
 
 ## 🐳 Docker
 
 The application is containerized using Docker.
 
-The production deployment contains three services:
+The production deployment contains three application services:
 
 ```text
 Frontend
@@ -237,14 +258,14 @@ MongoDB
 
 Docker Compose manages the application services and persistent MongoDB storage.
 
-### Docker images
+### Docker Images
 
 ```text
 jeevanjacob11/task-manager-backend
 jeevanjacob11/task-manager-frontend
 ```
 
-Each Jenkins build creates a versioned image using the Jenkins build number.
+Each Jenkins build can create identifiable image versions using the Jenkins build number.
 
 For example:
 
@@ -256,7 +277,9 @@ task-manager-frontend:19
 task-manager-frontend:latest
 ```
 
-This allows previous build versions to remain identifiable instead of relying only on the `latest` tag.
+Versioned tags allow previous builds to remain identifiable instead of relying only on the `latest` tag.
+
+---
 
 ## ☁️ AWS Deployment
 
@@ -280,6 +303,10 @@ task-manager-mongodb
 
 MongoDB uses a Docker volume for persistent database storage.
 
+The deployment architecture separates public web traffic from internal application and database communication.
+
+---
+
 ## 🌐 Nginx
 
 Nginx acts as the public reverse proxy.
@@ -293,7 +320,11 @@ Requests are routed internally:
 /api/   → Express backend
 ```
 
-The application containers themselves are bound to localhost rather than being directly exposed to the internet.
+The application containers are bound to localhost rather than being directly exposed to the public internet.
+
+This provides an additional layer of network security while allowing Nginx to control public access.
+
+---
 
 ## 📊 CloudWatch Monitoring
 
@@ -306,7 +337,7 @@ The agent collects host-level metrics including:
 * Disk utilization
 * Disk I/O
 
-EC2 dimensions such as the following are attached to the metrics:
+EC2 dimensions associated with the metrics include:
 
 ```text
 InstanceId
@@ -339,11 +370,13 @@ Evaluation:
 1 datapoint within 5 minutes
 ```
 
-The alarm sends notifications through an SNS topic when the threshold is exceeded.
+The alarm sends notifications through an Amazon SNS topic when the configured threshold is exceeded.
+
+---
 
 ## 🔐 Security Hardening
 
-Application services were hardened so that backend and frontend containers are not directly exposed publicly.
+Application services were hardened so that the frontend and backend containers are not directly exposed publicly.
 
 ### Backend
 
@@ -351,11 +384,15 @@ Application services were hardened so that backend and frontend containers are n
 127.0.0.1:5000 → container port 5000
 ```
 
+The backend is accessible locally on the EC2 host and is reached publicly through Nginx.
+
 ### Frontend
 
 ```text
 127.0.0.1:5173 → container port 5173
 ```
+
+The frontend is also accessed publicly through Nginx rather than exposing its Docker port directly to the internet.
 
 ### MongoDB
 
@@ -363,7 +400,7 @@ MongoDB is not publicly published to the host.
 
 Instead, the backend communicates with MongoDB through the Docker Compose network.
 
-Therefore the public request flow is:
+Therefore, the public request flow is:
 
 ```text
 Internet
@@ -379,6 +416,10 @@ Docker Network
 MongoDB
 ```
 
+This prevents direct public access to the MongoDB database.
+
+---
+
 ## 🔑 AWS IAM
 
 The EC2 instance uses an IAM role named:
@@ -392,13 +433,15 @@ The role provides permissions required by the instance, including:
 * AmazonSSMManagedInstanceCore
 * CloudWatchAgentServerPolicy
 
-This allows the CloudWatch Agent to publish monitoring data without storing AWS access keys directly on the server.
+This allows the CloudWatch Agent to publish monitoring data using the EC2 instance role instead of storing AWS access keys directly on the server.
+
+---
 
 ## 🐞 Troubleshooting Highlights
 
 Several real-world DevOps issues were encountered and resolved during development.
 
-### Jenkins had no npm
+### Jenkins Had No npm
 
 Jenkins initially attempted to run:
 
@@ -408,9 +451,13 @@ npm test
 
 but the Jenkins container did not contain npm.
 
-**Solution:** run Node.js commands inside a Node Docker container.
+**Solution:** Node.js commands were executed inside a Node Docker container.
 
-### Jenkins workspace mount problem
+This allowed the Jenkins pipeline to run the required application tests without installing Node.js directly into the Jenkins image.
+
+---
+
+### Jenkins Workspace Mount Problem
 
 Docker volume mounting initially resulted in Jenkins being unable to locate:
 
@@ -420,9 +467,11 @@ package.json
 
 The workspace path was being interpreted by the Docker daemon rather than as expected inside the Jenkins container.
 
-**Solution:** use the persistent `jenkins_home` volume and the correct Jenkins workspace path.
+**Solution:** The persistent `jenkins_home` volume and the correct Jenkins workspace path were used.
 
-### GitHub SSH authentication
+---
+
+### GitHub SSH Authentication
 
 GitHub SSH access initially produced:
 
@@ -430,9 +479,13 @@ GitHub SSH access initially produced:
 Permission denied (publickey)
 ```
 
-The GitHub host key was also added to the known-hosts configuration to resolve host verification issues.
+The GitHub host key was also added to the known-hosts configuration to resolve SSH host verification issues.
 
-### Docker build storage problem
+This allowed Jenkins to securely communicate with the GitHub repository using SSH authentication.
+
+---
+
+### Docker Build Storage Problem
 
 Docker builds encountered:
 
@@ -440,9 +493,11 @@ Docker builds encountered:
 no space left on device
 ```
 
-Disk usage was checked and the Docker storage situation was corrected before continuing.
+Disk usage was checked and the Docker storage situation was corrected before continuing with the build process.
 
-### CloudWatch Agent credentials
+---
+
+### CloudWatch Agent Credentials
 
 The CloudWatch Agent initially reported:
 
@@ -451,117 +506,159 @@ NoCredentialProviders
 EC2RoleRequestError
 ```
 
-The EC2 instance did not yet have an IAM role.
+The EC2 instance did not yet have an IAM role with the required permissions.
 
-**Solution:** attach `DevOpsTaskManagerEC2Role` with the required CloudWatch permissions and restart the agent.
+**Solution:** The `DevOpsTaskManagerEC2Role` IAM role was attached to the EC2 instance with the required CloudWatch permissions, and the CloudWatch Agent was restarted.
 
-### CloudWatch Docker filesystem warnings
+---
 
-The CloudWatch Agent reported permission errors when inspecting Docker internal filesystem/network paths.
+### CloudWatch Docker Filesystem Warnings
 
-These were nonfatal Docker-internal monitoring warnings; the required host metrics continued to be collected and published.
+The CloudWatch Agent reported permission errors when inspecting some Docker internal filesystem and network paths.
+
+These were nonfatal Docker-internal monitoring warnings. The required host-level metrics continued to be collected and published to CloudWatch.
+
+---
 
 ## 📦 Deployment Commands
 
-Start the application:
+### Start the Application
 
 ```bash
 docker compose up -d
 ```
 
-Check running services:
+### Check Running Services
 
 ```bash
 docker compose ps
 ```
 
-View logs:
+### View Logs
 
 ```bash
 docker compose logs
 ```
 
-Pull the latest images:
+### Pull Latest Images
 
 ```bash
 docker compose pull
 ```
 
-Restart the application:
+### Restart the Application
 
 ```bash
 docker compose up -d
 ```
 
-Check Nginx configuration:
+### Check Nginx Configuration
 
 ```bash
 sudo nginx -t
 ```
 
-Reload Nginx:
+### Reload Nginx
 
 ```bash
 sudo systemctl reload nginx
 ```
 
-Check CloudWatch Agent:
+### Check CloudWatch Agent
 
 ```bash
 sudo systemctl status amazon-cloudwatch-agent
 ```
 
-Restart CloudWatch Agent:
+### Restart CloudWatch Agent
 
 ```bash
 sudo systemctl restart amazon-cloudwatch-agent
 ```
 
+---
+
 ## 🔗 Project Resources
 
-**GitHub Repository**
+### GitHub Repository
 
 https://github.com/jeevan11jacob-svg/task-manager-devops
 
-**Docker Hub**
+### Docker Hub Images
 
 ```text
 jeevanjacob11/task-manager-backend
 jeevanjacob11/task-manager-frontend
 ```
 
+---
+
 ## 📸 Screenshots
 
-The project documentation includes screenshots demonstrating:
+The project documentation includes screenshots demonstrating the application and DevOps infrastructure.
 
-* Application dashboard
-* Task management functionality
-* Jenkins successful pipeline
-* Docker Hub images
-* AWS EC2 deployment
-* CloudWatch metrics
-* CloudWatch alarm
-* AWS security configuration
-* GitHub repository
+### Task Manager Dashboard
+
+![Task Manager Dashboard](screenshots/Task_manager.png)
+
+### CRUD Operations
+
+![CRUD Operations](screenshots/CRUD.png)
+
+### Jenkins Pipeline
+
+![Jenkins Build Success](screenshots/Jenkins_build_success.png)
+
+### Docker Hub
+
+![Docker Hub](screenshots/DockerHub.png)
+
+### CloudWatch Monitoring
+
+![CloudWatch Monitoring](screenshots/CloudWatch.png)
+
+### Nginx Reverse Proxy
+
+![Nginx Configuration](screenshots/Nginx.jpeg)
+
+### Docker Hub Backend Image
+
+![Docker Hub Backend Image](screenshots/DH_Backend_image.png)
+
+### Docker Hub Frontend Image
+
+![Docker Hub Frontend Image](screenshots/DH_Frontend_image.png)
+
+### Architecture
+
+![Architecture Diagram](screenshots/Architecture_Diagram.png)
+
+---
 
 ## 🎯 DevOps Outcomes
 
 This project demonstrates practical experience with:
 
-* Source control
-* CI/CD automation
-* Automated testing
-* Containerization
+* Source control using Git and GitHub
+* CI/CD automation using Jenkins
+* Automated backend testing
+* Containerization using Docker
+* Docker Compose orchestration
 * Docker image versioning
-* Container orchestration with Docker Compose
-* Container registry management
-* AWS cloud deployment
-* Reverse proxy configuration
-* Infrastructure monitoring
-* Alerting
+* Docker Hub registry management
+* AWS EC2 deployment
+* Nginx reverse proxy configuration
+* MongoDB container deployment
+* CloudWatch infrastructure monitoring
+* CloudWatch alarms
+* SNS email alerting
 * IAM-based authentication
-* Network/security hardening
+* Docker and network security hardening
+* Linux server administration
 * Troubleshooting real deployment failures
+* Automated application delivery
+
+---
 
 ## 🔮 Future Improvements
 
@@ -579,6 +676,8 @@ Possible future improvements include:
 * AWS Auto Scaling and Load Balancing
 * Blue/green or rolling deployments
 
+---
+
 ## 👨‍💻 Author
 
 **Jeevan Jacob**
@@ -587,6 +686,6 @@ B.Tech Artificial Intelligence and Data Science
 
 Cloud & DevOps Engineer
 
-GitHub: https://github.com/jeevanjacob11-svg
+GitHub: https://github.com/jeevan11jacob-svg
 
 LinkedIn: https://www.linkedin.com/in/jeevan-jacob1
